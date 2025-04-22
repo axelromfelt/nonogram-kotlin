@@ -54,7 +54,9 @@ enum class CellState {
 // Paint mode enum
 enum class PaintMode {
     FILL,
-    MARK
+    MARK,
+    MOVE,
+    CLEAR
 }
 
 // GameState class to hold the current state of the game
@@ -361,15 +363,15 @@ fun NonogramGame(samplePuzzle: List<List<Boolean>>) {
                                             // Determine the state to apply based on the paint mode and current cell state
                                             val currentCellState = cellStates[row][col].value
 
-                                            lastDragCellState.value = when (paintMode) {
-                                                PaintMode.FILL -> {
-                                                    if (currentCellState == CellState.FILLED) CellState.EMPTY else CellState.FILLED
-                                                }
-
-                                                PaintMode.MARK -> {
-                                                    if (currentCellState == CellState.MARKED) CellState.EMPTY else CellState.MARKED
-                                                }
-                                            }
+//                                            lastDragCellState.value = when (paintMode) {
+//                                                PaintMode.FILL -> {
+//                                                    if (currentCellState == CellState.FILLED) CellState.EMPTY else CellState.FILLED
+//                                                }
+//
+//                                                PaintMode.MARK -> {
+//                                                    if (currentCellState == CellState.MARKED) CellState.EMPTY else CellState.MARKED
+//                                                }
+//                                            }
 
                                             // Update the cell and mark it as modified
                                             cellStates[row][col].value = lastDragCellState.value!!
@@ -380,7 +382,7 @@ fun NonogramGame(samplePuzzle: List<List<Boolean>>) {
                                         },
                                         onDrag = { change, _ ->
                                             // Consume the change to prevent scrolling
-                                            change.consumeAllChanges()
+                                            change.consume()
 
                                             // Convert position to grid coordinates considering zoom
                                             val row =
@@ -428,14 +430,14 @@ fun NonogramGame(samplePuzzle: List<List<Boolean>>) {
                                     // Apply the appropriate state based on paint mode and current state
                                     val currentState = cellStates[row][col].value
 
-                                    cellStates[row][col].value = when (paintMode) {
-                                        PaintMode.FILL -> {
-                                            if (currentState == CellState.FILLED) CellState.EMPTY else CellState.FILLED
-                                        }
-                                        PaintMode.MARK -> {
-                                            if (currentState == CellState.MARKED) CellState.EMPTY else CellState.MARKED
-                                        }
-                                    }
+//                                    cellStates[row][col].value = when (paintMode) {
+//                                        PaintMode.FILL -> {
+//                                            if (currentState == CellState.FILLED) CellState.EMPTY else CellState.FILLED
+//                                        }
+//                                        PaintMode.MARK -> {
+//                                            if (currentState == CellState.MARKED) CellState.EMPTY else CellState.MARKED
+//                                        }
+//                                    }
 
                                     // Update the game state
                                     val newGameState = createGameStateFromCellStates(

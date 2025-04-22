@@ -37,6 +37,12 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
+import androidx.compose.material.icons.filled.CropSquare
+import androidx.compose.material.icons.filled.DisabledByDefault
+import androidx.compose.material.icons.filled.Exposure
+import androidx.compose.material.icons.filled.OpenWith
+import androidx.compose.material.icons.filled.Square
 import androidx.compose.material3.*
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -205,5 +211,251 @@ fun NonogramMain(puzzleCompressed: String) {
                 colMaxHints = colMaxHints
             )
         )
+    }
+
+    var paintMode by remember { mutableStateOf(PaintMode.FILL) }
+
+    var zoomFactor by remember { mutableStateOf(1f) }
+    val minZoom = 0.5f
+    val maxZoom = 3.0f
+
+    val horizontalScrollState = rememberScrollState()
+    val verticalScrollState = rememberScrollState()
+
+    val lastDragCellState = remember { mutableStateOf<CellState?>(null) }
+
+    val modifiedDuringDrag = remember { mutableStateOf(mutableSetOf<Pair<Int, Int>>()) }
+
+    val cellStates = remember {
+        Array(gameInfo.value.height) { row ->
+            Array(gameInfo.value.width) { cell ->
+                mutableStateOf(CellState.EMPTY)
+            }
+        }
+    }
+
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val density = LocalDensity.current
+
+    val gridAreaWidth = screenWidth - 16.dp
+
+    val baseCellSize = if (gridAreaWidth/(gameInfo.value.height+gameInfo.value.colMaxHints)<gridAreaWidth/(gameInfo.value.width+gameInfo.value.rowMaxHints)){
+        gridAreaWidth/(gameInfo.value.height+gameInfo.value.colMaxHints)
+    } else {
+        gridAreaWidth/(gameInfo.value.width+gameInfo.value.rowMaxHints)
+    }.coerceAtMost(40.dp)
+
+    val cellSize = baseCellSize * zoomFactor
+
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Nonogram Puzzle",
+                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 18.sp)
+            )
+            PaintModeSelector(
+                currentPaintMode = paintMode,
+                onPaintModeChange = { newMode -> paintMode = newMode }
+            )
+        }
+
+
+
+        // Zoom controls
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Zoom: ",
+                fontSize = 14.sp,
+                modifier = Modifier.padding(end = 4.dp)
+            )
+
+            IconButton(
+                onClick = {
+                    zoomFactor = (zoomFactor - 0.25f).coerceAtLeast(minZoom)
+                },
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Remove,
+                    contentDescription = "Zoom Out",
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+
+            Text(
+                text = "${(zoomFactor * 100).toInt()}%",
+                fontSize = 14.sp,
+                modifier = Modifier.padding(horizontal = 8.dp),
+                textAlign = TextAlign.Center
+            )
+
+            IconButton(
+                onClick = {
+                    zoomFactor = (zoomFactor + 0.25f).coerceAtMost(maxZoom)
+                },
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Zoom In",
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Game status
+
+
+        // Button row with Reset and Reset Zoom buttons
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+
+            // Reset zoom button
+            Button(
+                onClick = {
+                    zoomFactor = 1f
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary
+                )
+            ) {
+                Text("Reset Zoom")
+            }
+        }
+
+
+
+    }
+
+
+
+
+}
+
+
+
+@Composable
+fun PaintModeSelector(
+    currentPaintMode: PaintMode,
+    onPaintModeChange: (PaintMode) -> Unit
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(text = "Mode: ", fontSize = 12.sp)
+
+        Button(
+            onClick = { onPaintModeChange(PaintMode.FILL) },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (currentPaintMode == PaintMode.FILL)
+                    MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.secondary
+            ),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Square,
+                    contentDescription = "Fill Mode",
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(text = "Fill", fontSize = 12.sp)
+            }
+        }
+
+        Button(
+            onClick = { onPaintModeChange(PaintMode.MARK) },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (currentPaintMode == PaintMode.MARK)
+                    MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.secondary
+            ),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DisabledByDefault,
+                    contentDescription = "Mark Mode",
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(text = "Mark", fontSize = 12.sp)
+            }
+        }
+
+        Button(
+            onClick = { onPaintModeChange(PaintMode.CLEAR) },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (currentPaintMode == PaintMode.CLEAR)
+                    MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.secondary
+            ),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.CheckBoxOutlineBlank,
+                    contentDescription = "Clear Mode",
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(text = "Clear", fontSize = 12.sp)
+            }
+        }
+
+        Button(
+            onClick = { onPaintModeChange(PaintMode.MOVE) },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (currentPaintMode == PaintMode.MOVE)
+                    MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.secondary
+            ),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.OpenWith,
+                    contentDescription = "Move Mode",
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(text = "Move", fontSize = 12.sp)
+            }
+        }
     }
 }

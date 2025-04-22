@@ -209,6 +209,7 @@ class MainActivity : ComponentActivity() {
                 ) {
 //                    NonogramGame(samplePuzzle)
                     NonogramMain(puzzle)
+//                    TransformableSample()
                 }
             }
         }
