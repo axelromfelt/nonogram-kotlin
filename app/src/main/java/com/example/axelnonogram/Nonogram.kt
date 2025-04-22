@@ -316,75 +316,14 @@ fun NonogramGame(samplePuzzle: List<List<Boolean>>) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 // Column hints area
-                Row(
-                    modifier = Modifier.height(hintAreaWidth*colHintsSize)
-                ) {
-                    // Empty corner
-                    Box(
-                        modifier = Modifier.size(hintAreaWidth)
-                    )
 
-                    // Column hints - horizontally scrollable when zoomed
-                    Box(
-                        modifier = Modifier
-                            .horizontalScroll(horizontalScrollState)
-                            .width(baseCellSize * gameState.value.size)
-                    ) {
-                        Row {
-                            // Column hints
-                            gameState.value.colHints.forEach { hints ->
-                                Column(
-                                    modifier = Modifier
-                                        .width(cellSize)
-                                        .fillMaxHeight(),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Bottom
-                                ) {
-                                    hints.forEach { hint ->
-                                        Text(
-                                            text = if (hint == 0) "" else "$hint",
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = with(density) { min(12.dp.toPx(), baseCellSize.toPx() * 0.4f).toSp() }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
                     // Row hints - vertically scrollable when zoomed
-                    Box(
-                        modifier = Modifier
-                            .width(hintAreaWidth * rowHintsSize)
-                            .height(baseCellSize * gameState.value.size)
-                            .verticalScroll(verticalScrollState)
-                    ) {
-                        Column {
-                            gameState.value.rowHints.forEach { hints ->
-                                Row(
-                                    modifier = Modifier
-                                        .height(cellSize)
-                                        .fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.End,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    hints.forEach { hint ->
-                                        Text(
-                                            text = if (hint == 0) "" else "$hint",
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = with(density) { min(12.dp.toPx(), baseCellSize.toPx() * 0.4f).toSp() },
-                                            modifier = Modifier.padding(end = 2.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
+
 
                     // Scrollable grid container
                     Box(
@@ -395,6 +334,7 @@ fun NonogramGame(samplePuzzle: List<List<Boolean>>) {
                             .clipToBounds()
                     ) {
                         // Grid with pinch-to-zoom capability
+                        Log.e("TAGGGG","${gameState.value.size}")
                         Box(
                             modifier = Modifier
                                 .size(cellSize * gameState.value.size)
@@ -618,8 +558,8 @@ fun GridBoard(
                         Box(
                             modifier = Modifier
                                 .size(cellSize)
-                                .border(0.5.dp, Color.White)
-                                .background(Color.White)
+                                .border(0.5.dp, Color.Gray)
+                                .background(Color.Cyan)
                         )
                     } else if (col <= rowHintsMax) {
                         if (rowHints[rowCount-colHintsMax].count() < colCountRow) {
@@ -627,7 +567,7 @@ fun GridBoard(
                                 modifier = Modifier
                                     .size(cellSize)
                                     .border(0.5.dp, Color.Gray)
-                                    .background(Color.White)
+                                    .background(Color.Yellow)
                             ) {
                                 Text(
 //                                    rowHints[colCountRow - 1 - rowCount].count()
@@ -646,6 +586,14 @@ fun GridBoard(
                                 )
                             }
                         }
+                        else {
+                            Box(
+                                modifier = Modifier
+                                    .size(cellSize)
+                                    .border(0.5.dp, Color.Gray)
+                                    .background(Color.Green)
+                            )
+                        }
                         colCountRow++
                     } else if (row <= colHintsMax) {
                         if (colHints[colCountCol].count() < rowCount-rowHintsMax) {
@@ -653,7 +601,7 @@ fun GridBoard(
                                 modifier = Modifier
                                     .size(cellSize)
                                     .border(0.5.dp, Color.Gray)
-                                    .background(Color.White)
+                                    .background(Color.Red)
                             ) {
                                 Text(
                                     text = "${colHints[colCountCol][rowCount - 1 - colHints[colCountCol].count() - rowHintsMax]}",
@@ -671,6 +619,14 @@ fun GridBoard(
                                 )
                             }
                         }
+                        else {
+                            Box(
+                                modifier = Modifier
+                                    .size(cellSize)
+                                    .border(0.5.dp, Color.Gray)
+                                    .background(Color.Blue)
+                            )
+                        }
                         colCountCol++
                     }
                     // Use an interaction source that doesn't trigger ripples for better performance
@@ -680,7 +636,7 @@ fun GridBoard(
                                 .size(cellSize)
                                 .border(0.5.dp, Color.Gray)
                                 .background(
-                                    when (cellStates[row-rowHintsMax][col-colHintsMax].value) {
+                                    when (cellStates[row - rowHintsMax][col - colHintsMax].value) {
                                         CellState.FILLED -> Color.Black
                                         CellState.MARKED -> Color.LightGray
                                         CellState.EMPTY -> Color.White
