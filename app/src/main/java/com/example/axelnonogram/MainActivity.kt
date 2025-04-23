@@ -200,7 +200,7 @@ class MainActivity : ComponentActivity() {
             listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true),
         )
 //        val puzzle = "20x20xEeeikidjOEcHMdneEeigGmPbgfCEpOKlNGijfNMJGaBggaKlGbOIhGklEKKdNnJkjMkdnhdgANChBogb"
-        val puzzle = "3x4xfni"
+        val puzzle = "3x4xlNm"
         setContent {
             MaterialTheme {
                 Surface(

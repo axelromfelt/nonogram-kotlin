@@ -28,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material.icons.Icons
-
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Add
@@ -45,14 +44,16 @@ import androidx.compose.material.icons.outlined.DisabledByDefault
 import androidx.compose.material.icons.filled.Exposure
 import androidx.compose.material.icons.filled.OpenWith
 import androidx.compose.material.icons.filled.Square
-
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
 import kotlin.math.min
 import kotlin.math.max
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.graphicsLayer
 import java.nio.file.WatchEvent
 
 val dict = mapOf(
@@ -89,6 +90,7 @@ val dict = mapOf(
     "11110" to 'p',
     "11111" to 'P'
 )
+
 data class GameInfo(
     val width: Int,
     val height: Int,
@@ -109,6 +111,7 @@ fun decompress(puzzleKey: String): List<String> {
     val grid = list[2]
     val result = mutableListOf<String>()
 
+
     for (letter in grid) {
         for ((key, value) in dict) {
             if (value == letter) {
@@ -117,19 +120,32 @@ fun decompress(puzzleKey: String): List<String> {
             }
         }
     }
+    Log.e("IJFISOEFIOSEFIOSFJSIEO","$grid,$result")
+
     return listOf(x, y, result.joinToString(""))
 }
+//101
+//101
+//101
+//111
 
+//101
+//011
+//111
+//101
 @Composable
 fun NonogramMain(puzzleCompressed: String) {
     val puzzleDecompressed = decompress(puzzleCompressed)
     val solution = Array(puzzleDecompressed[1].toInt()) { Array(puzzleDecompressed[0].toInt()) { true } }
+    var index = 0
+    for (y in 0 until puzzleDecompressed[1].toInt()) {
 
-    for (y in 1 .. puzzleDecompressed[1].toInt()){
-        for (x in 1 .. puzzleDecompressed[0].toInt()){
-            solution[y - 1][x - 1] = puzzleDecompressed[2][y*x-1].code == 49
+        for (x in 0 until puzzleDecompressed[0].toInt()) {
+            solution[y][x] = puzzleDecompressed[2][y*puzzleDecompressed[0].toInt()+x].code == 49
+            index++
         }
     }
+
 
     val rowHints = remember {
         val hints = mutableListOf<List<Int>>()
@@ -156,8 +172,11 @@ fun NonogramMain(puzzleCompressed: String) {
         }
         hints
     }
-
-
+    for (row in solution){
+        for (col in row){
+            Log.e("TESTINGGRID","$col")
+        }
+    }
     val colHints = remember {
         val hints = mutableListOf<List<Int>>()
 
@@ -190,16 +209,18 @@ fun NonogramMain(puzzleCompressed: String) {
 
     var rowMaxHints = 0
     for (rowHint in rowHints) {
-        if (rowHint.count() > rowMaxHints){
+        if (rowHint.count() > rowMaxHints) {
             rowMaxHints = rowHint.count()
         }
     }
+
     var colMaxHints = 0
     for (colHint in colHints) {
-        if (colHint.count() > colMaxHints){
+        if (colHint.count() > colMaxHints) {
             colMaxHints = colHint.count()
         }
     }
+
     val gameInfo = remember {
         mutableStateOf(
             GameInfo(
@@ -242,9 +263,14 @@ fun NonogramMain(puzzleCompressed: String) {
     val screenWidth = configuration.screenWidthDp.dp
     val density = LocalDensity.current
 
+    var scale by remember { mutableStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+
+    var pointerCount by remember { mutableStateOf(0) }
+
     val gridAreaWidth = screenWidth - 16.dp
 
-    val baseCellSize = if (gridAreaWidth/(gameInfo.value.height+gameInfo.value.colMaxHints)<gridAreaWidth/(gameInfo.value.width+gameInfo.value.rowMaxHints)){
+    val baseCellSize = if (gridAreaWidth/(gameInfo.value.height+gameInfo.value.colMaxHints) < gridAreaWidth/(gameInfo.value.width+gameInfo.value.rowMaxHints)) {
         gridAreaWidth/(gameInfo.value.height+gameInfo.value.colMaxHints)
     } else {
         gridAreaWidth/(gameInfo.value.width+gameInfo.value.rowMaxHints)
@@ -258,14 +284,14 @@ fun NonogramMain(puzzleCompressed: String) {
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
+                .fillMaxSize(),
+//                .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp),
+                    .fillMaxWidth(),
+//                    .padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -273,20 +299,10 @@ fun NonogramMain(puzzleCompressed: String) {
                     text = "Nonogram Puzzle",
                     style = MaterialTheme.typography.headlineMedium.copy(fontSize = 18.sp)
                 )
-
             }
-
-
-            // Zoom controls
-
-
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Game status
-
-
-            // Button row with Reset and Reset Zoom buttons
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -294,24 +310,44 @@ fun NonogramMain(puzzleCompressed: String) {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-
-                // Reset zoom button
-                Button(
-
-                    onClick = {
-                        zoomFactor = 1f
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
-                    )
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color.White)
+                        .pointerInput(Unit) {
+                            awaitPointerEventScope {
+                                while (true) {
+                                    val event = awaitPointerEvent()
+                                    pointerCount = event.changes.size
+                                }
+                            }
+                        }
+                        .pointerInput(Unit) {
+                            detectTransformGestures(
+                                onGesture = { _, pan, zoom, _ ->
+                                    if (pointerCount > 1) {
+                                        scale = (scale*zoom).coerceAtLeast(minZoom).coerceAtMost(maxZoom)
+                                        offset += pan
+                                    }
+                                }
+                            )
+                        }
                 ) {
-                    Text("Reset Zoom")
+                    Box(
+                        Modifier
+                            .graphicsLayer(
+                                scaleX = scale,
+                                scaleY = scale,
+                                translationX = offset.x,
+                                translationY = offset.y
+                            )
+//                            .background(color = Color.Black)
+                            .fillMaxSize()
+                    ) {
+
+                    }
                 }
             }
-
-
-
         }
 
         Row(
@@ -324,9 +360,9 @@ fun NonogramMain(puzzleCompressed: String) {
         ) {
             // Docking Zoom Controls to the Left
             ZoomControls(
-                zoomFactor = zoomFactor,
-                onZoomChanged = { newZoom -> zoomFactor = newZoom },
-                onResetZoom = { zoomFactor = 1f }
+                zoomFactor = scale,
+                onZoomChanged = { newZoom -> scale = newZoom },
+                onResetZoom = { scale = 1f; offset = Offset.Zero }
             )
 
             // Docking Paint Mode Controls to the Right
@@ -336,9 +372,21 @@ fun NonogramMain(puzzleCompressed: String) {
             )
         }
     }
-
 }
 
+@Composable
+fun GameGrid(
+    height: Int,
+    width: Int,
+    cellState: Array<Array<MutableState<CellState>>>,
+    cellSize: androidx.compose.ui.unit.Dp,
+    rowHints: List<List<Int>>,
+    colHints: List<List<Int>>,
+    rowHintsSize: Int,
+    colHintsSize: Int
+){
+
+}
 
 
 @Composable
@@ -347,7 +395,6 @@ fun PaintModeSelector(
     onPaintModeChange: (PaintMode) -> Unit
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-
         Button(
             shape = RectangleShape,
             modifier = Modifier
@@ -369,7 +416,6 @@ fun PaintModeSelector(
                     contentDescription = "Fill Mode",
                     modifier = Modifier.size(24.dp),
                     tint = Color.Black
-
                 )
 //                Text(text = "Fill", fontSize = 12.sp)
             }
@@ -396,7 +442,6 @@ fun PaintModeSelector(
                     contentDescription = "Mark Mode",
                     modifier = Modifier.size(24.dp),
                     tint = Color.Black
-
                 )
 //                Text(text = "Mark", fontSize = 12.sp)
             }
@@ -423,7 +468,6 @@ fun PaintModeSelector(
                     contentDescription = "Clear Mode",
                     modifier = Modifier.size(24.dp),
                     tint = Color.Black
-
                 )
 //                Text(text = "Clear", fontSize = 12.sp)
             }
@@ -450,15 +494,12 @@ fun PaintModeSelector(
                     contentDescription = "Move Mode",
                     modifier = Modifier.size(24.dp),
                     tint = Color.Black
-
                 )
 //                Text(text = "Move", fontSize = 12.sp)
             }
         }
     }
 }
-
-
 
 @Composable
 fun ZoomControls(
@@ -469,13 +510,10 @@ fun ZoomControls(
     val minZoom = 0.5f
     val maxZoom = 3.0f
 
-    Row(verticalAlignment = Alignment.CenterVertically){
-
+    Row(verticalAlignment = Alignment.CenterVertically) {
         IconButton(
-
             onClick = {
                 onZoomChanged((zoomFactor - 0.25f).coerceAtLeast(minZoom))
-
             },
             modifier = Modifier.size(35.dp)
         ) {
@@ -490,16 +528,18 @@ fun ZoomControls(
             shape = RectangleShape,
             onClick = onResetZoom,
             modifier = Modifier.height(35.dp).width(75.dp)
-        ){Text(text = "${(zoomFactor * 100).toInt()}%",
-            fontSize = 14.sp,
-            color = Color.Black,
-            textAlign = TextAlign.Center)}
+        ) {
+            Text(
+                text = "${(zoomFactor * 100).toInt()}%",
+                fontSize = 14.sp,
+                color = Color.Black,
+                textAlign = TextAlign.Center
+            )
+        }
 
         IconButton(
             onClick = {
                 onZoomChanged((zoomFactor + 0.25f).coerceAtMost(maxZoom))
-
-
             },
             modifier = Modifier.size(32.dp)
         ) {
@@ -509,8 +549,5 @@ fun ZoomControls(
                 modifier = Modifier.size(20.dp)
             )
         }
-
-
     }
-
 }
