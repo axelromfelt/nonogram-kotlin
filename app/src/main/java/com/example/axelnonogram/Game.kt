@@ -54,6 +54,7 @@ import kotlin.math.max
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.Dp
 import java.nio.file.WatchEvent
 
 val dict = mapOf(
@@ -172,11 +173,7 @@ fun NonogramMain(puzzleCompressed: String) {
         }
         hints
     }
-    for (row in solution){
-        for (col in row){
-            Log.e("TESTINGGRID","$col")
-        }
-    }
+
     val colHints = remember {
         val hints = mutableListOf<List<Int>>()
 
@@ -207,6 +204,19 @@ fun NonogramMain(puzzleCompressed: String) {
         hints
     }
 
+
+//    for (row in colHints){
+//        for (col in row){
+//            Log.e("ABC123","col $col")
+//        }
+//    }
+
+//    for (row in rowHints){
+//        for (col in row){
+//            Log.e("ABC123","row $col")
+//        }
+//    }
+
     var rowMaxHints = 0
     for (rowHint in rowHints) {
         if (rowHint.count() > rowMaxHints) {
@@ -224,8 +234,8 @@ fun NonogramMain(puzzleCompressed: String) {
     val gameInfo = remember {
         mutableStateOf(
             GameInfo(
-                height = puzzleDecompressed[0].toInt(),
-                width = puzzleDecompressed[1].toInt(),
+                height = puzzleDecompressed[1].toInt(),
+                width = puzzleDecompressed[0].toInt(),
                 solution = solution,
                 currentState = List(puzzleDecompressed[1].toInt()) {
                     List(puzzleDecompressed[0].toInt()) { CellState.EMPTY }
@@ -274,7 +284,7 @@ fun NonogramMain(puzzleCompressed: String) {
         gridAreaWidth/(gameInfo.value.height+gameInfo.value.colMaxHints)
     } else {
         gridAreaWidth/(gameInfo.value.width+gameInfo.value.rowMaxHints)
-    }.coerceAtMost(40.dp)
+    }//.coerceAtMost(40.dp)
 
     val cellSize = baseCellSize * zoomFactor
 
@@ -326,7 +336,8 @@ fun NonogramMain(puzzleCompressed: String) {
                             detectTransformGestures(
                                 onGesture = { _, pan, zoom, _ ->
                                     if (pointerCount > 1) {
-                                        scale = (scale*zoom).coerceAtLeast(minZoom).coerceAtMost(maxZoom)
+                                        scale = (scale * zoom).coerceAtLeast(minZoom)
+                                            .coerceAtMost(maxZoom)
                                         offset += pan
                                     }
                                 }
@@ -343,8 +354,119 @@ fun NonogramMain(puzzleCompressed: String) {
                             )
 //                            .background(color = Color.Black)
                             .fillMaxSize()
+//                            .pointerInput(Unit) {
+//                                detectTransformGestures { _, pan, zoom, _ ->
+//                                    // Update zoom factor with pinch gesture
+//                                    zoomFactor = (zoomFactor * zoom).coerceIn(minZoom, maxZoom)
+//                                }
+//                            }
+//                            .pointerInput(paintMode) {
+//                                detectDragGestures(
+//                                    onDragStart = { dragStartPosition ->
+//                                        Log.e("AABBVV","${dragStartPosition.y/(size.height/gameInfo.value.height)}")
+////                                        // Convert position to grid coordinates considering zoom
+////                                        val row =
+////                                            (dragStartPosition.y / (size.height / gameState.value.size)).toInt()
+////                                                .coerceIn(0, gameState.value.size - 1)
+////                                        val col =
+////                                            (dragStartPosition.x / (size.width / gameState.value.size)).toInt()
+////                                                .coerceIn(0, gameState.value.size - 1)
+////
+////                                        // Clear the modified cells set at the start of a new drag
+////                                        modifiedDuringDrag.value.clear()
+////
+////                                        // Determine the state to apply based on the paint mode and current cell state
+////                                        val currentCellState = cellStates[row][col].value
+////
+//////                                            lastDragCellState.value = when (paintMode) {
+//////                                                PaintMode.FILL -> {
+//////                                                    if (currentCellState == CellState.FILLED) CellState.EMPTY else CellState.FILLED
+//////                                                }
+//////
+//////                                                PaintMode.MARK -> {
+//////                                                    if (currentCellState == CellState.MARKED) CellState.EMPTY else CellState.MARKED
+//////                                                }
+//////                                            }
+////
+////                                        // Update the cell and mark it as modified
+////                                        cellStates[row][col].value = lastDragCellState.value!!
+////                                        modifiedDuringDrag.value.add(Pair(row, col))
+////
+////                                        // Update the game state
+////                                        updateGameState(gameState, cellStates)
+//                                    },
+//                                    onDrag = { change, _ ->
+////                                        // Consume the change to prevent scrolling
+////                                        change.consume()
+////
+////                                        // Convert position to grid coordinates considering zoom
+////                                        val row =
+////                                            (change.position.y / (size.height / gameState.value.size)).toInt()
+////                                                .coerceIn(0, gameState.value.size - 1)
+////                                        val col =
+////                                            (change.position.x / (size.width / gameState.value.size)).toInt()
+////                                                .coerceIn(0, gameState.value.size - 1)
+////
+////                                        // Check if this cell has already been modified in this drag operation
+////                                        val cellCoord = Pair(row, col)
+////                                        if (!modifiedDuringDrag.value.contains(cellCoord)) {
+////                                            // Update the cell and mark it as modified
+////                                            cellStates[row][col].value =
+////                                                lastDragCellState.value!!
+////                                            modifiedDuringDrag.value.add(cellCoord)
+////
+////                                            // Update the game state
+////                                            updateGameState(gameState, cellStates)
+////                                        }
+//                                    },
+////                                    onDragEnd = {
+////                                        // Update completion status
+////                                        val newGameState = createGameStateFromCellStates(
+////                                            gameState.value,
+////                                            cellStates
+////                                        )
+////                                        gameState.value = newGameState.copy(
+////                                            isComplete = checkCompletion(
+////                                                newGameState.currentState,
+////                                                gameState.value.solution
+////                                            )
+////                                        )
+////                                    }
+//                                )
+//                            }
                     ) {
+                        GameGrid(
+                            height = gameInfo.value.height,
+                            width = gameInfo.value.width,
+                            cellStates = cellStates,
+                            cellSize = cellSize,
+                            rowHints = gameInfo.value.rowHints,
+                            colHints = gameInfo.value.colHints,
+                            rowHintsSize = gameInfo.value.rowMaxHints,
+                            colHintsSize = gameInfo.value.colMaxHints,
+                            onCellCLicked = { row, col ->
+                                // Apply the appropriate state based on paint mode and current state
+                                val currentState = cellStates[row][col].value
 
+                                cellStates[row][col].value = when (paintMode) {
+                                    PaintMode.FILL -> {
+                                        if (currentState == CellState.FILLED) CellState.EMPTY else CellState.FILLED
+                                    }
+                                    PaintMode.MARK -> {
+                                        if (currentState == CellState.MARKED) CellState.EMPTY else CellState.MARKED
+                                    }
+                                    PaintMode.CLEAR -> {
+                                        CellState.EMPTY
+                                    }
+                                    else -> {
+                                        currentState
+                                    }
+
+                                }
+
+                                // Update the game state
+                            }
+                        )
                     }
                 }
             }
@@ -378,14 +500,140 @@ fun NonogramMain(puzzleCompressed: String) {
 fun GameGrid(
     height: Int,
     width: Int,
-    cellState: Array<Array<MutableState<CellState>>>,
-    cellSize: androidx.compose.ui.unit.Dp,
+    cellStates: Array<Array<MutableState<CellState>>>,
+    cellSize: Dp,
     rowHints: List<List<Int>>,
     colHints: List<List<Int>>,
     rowHintsSize: Int,
-    colHintsSize: Int
+    colHintsSize: Int,
+    onCellCLicked: (Int, Int) -> Unit
 ){
+//    Log.e("ABC123","size: $colHintsSize , $rowHintsSize")
+    Column {
+        for (row in 0 until height + colHintsSize) {
+            Row {
+                for (col in 0 until width + rowHintsSize) {
 
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val density = LocalDensity.current
+//            Log.e("ABC123","$row , $col")
+
+                    if (col < rowHintsSize && row < colHintsSize) {
+
+                        Box(
+                            modifier = Modifier
+                                .size(cellSize)
+                                .border(0.5.dp, Color.Gray)
+                                .background(Color.Cyan)
+                        )
+                    } else if (col < rowHintsSize) {
+
+                        var currentRowHints = rowHints[row - colHintsSize]
+                        var currentHintIndex = col - (rowHintsSize - currentRowHints.count())
+
+                        Box(
+                            modifier = Modifier
+                                .size(cellSize)
+                                .border(0.5.dp, Color.Gray)
+                                .background(Color.Yellow)
+                        ) {
+                            if (currentHintIndex >= 0) {
+                                if (currentRowHints[currentHintIndex] != 0) {
+                                    Text(
+                                        text = "${currentRowHints[currentHintIndex]}",
+                                        color = Color.Black,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(2.dp)
+                                            .wrapContentHeight(),
+                                        fontSize = with(density) {
+//                                        min(
+                                            (
+//                                            14.dp.toPx(),
+                                                    cellSize.toPx() * 0.4f
+                                                    ).toSp()
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    } else if (row < colHintsSize) {
+                        Log.e("$col","$col")
+                        var currentColHints = colHints[col - rowHintsSize]
+                        var currentHintIndex = row - (colHintsSize - currentColHints.count())
+
+                        Box(
+                            modifier = Modifier
+                                .size(cellSize)
+                                .border(0.5.dp, Color.Gray)
+                                .background(Color.Yellow),
+
+                        ) {
+                            if (currentHintIndex >= 0) {
+                                if (currentColHints[currentHintIndex] != 0) {
+                                    Text(
+                                        text = "${currentColHints[currentHintIndex]}",
+                                        color = Color.Black,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(2.dp)
+                                            .wrapContentHeight(),
+                                        fontSize = with(density) {
+//                                        min(
+                                            (
+//                                            14.dp.toPx(),
+                                                    cellSize.toPx() * 0.4f
+                                                    ).toSp()
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        Box(
+                            modifier = Modifier
+                                .size(cellSize)
+                                .border(0.5.dp, Color.Gray)
+                                .background(
+                                    when (cellStates[row - colHintsSize][col - rowHintsSize].value) {
+                                        CellState.FILLED -> Color.Black
+                                        CellState.MARKED -> Color.White
+                                        CellState.EMPTY -> Color.White
+                                    }
+                                )
+                                .clickable(
+                                    interactionSource = interactionSource,
+                                    indication = null
+                                ) {
+                                    onCellCLicked(row - colHintsSize, col - rowHintsSize)
+                                }
+                        ) {
+                            if (cellStates[row - colHintsSize][col - rowHintsSize].value == CellState.MARKED) {
+                                Text(
+                                    text = "X",
+                                    color = Color.Black,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .wrapContentHeight(),
+                                    fontSize = with(density) {
+//                                        min(
+                                        (
+//                                            14.dp.toPx(),
+                                            cellSize.toPx() * 0.8f
+                                        ).toSp()
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 
@@ -527,7 +775,9 @@ fun ZoomControls(
         TextButton(
             shape = RectangleShape,
             onClick = onResetZoom,
-            modifier = Modifier.height(35.dp).width(75.dp)
+            modifier = Modifier
+                .height(35.dp)
+                .width(75.dp)
         ) {
             Text(
                 text = "${(zoomFactor * 100).toInt()}%",
