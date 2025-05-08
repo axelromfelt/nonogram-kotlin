@@ -200,7 +200,8 @@ class MainActivity : ComponentActivity() {
             listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true),
         )
 //        val puzzle = "20x20xEeeikidjOEcHMdneEeigGmPbgfCEpOKlNGijfNMJGaBggaKlGbOIhGklEKKdNnJkjMkdnhdgANChBogb"
-        val puzzle = "3x4xlNm"
+//        val puzzle = "3x4xlNm"
+        val puzzle = "3x6xlNGo"
         setContent {
             MaterialTheme {
                 Surface(
@@ -208,7 +209,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
 //                    NonogramGame(samplePuzzle)
-                    NonogramMain(puzzle)
+                    AppNavigation()
 //                    TransformableSample()
                 }
             }
