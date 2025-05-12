@@ -1,11 +1,6 @@
 package com.example.axelnonogram.game
 
-import android.R.attr.contentDescription
-import android.util.Log
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
@@ -13,51 +8,25 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.TextButton
-import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
-import androidx.compose.material.icons.outlined.DisabledByDefault
-import androidx.compose.material.icons.filled.OpenWith
-import androidx.compose.material.icons.filled.Redo
-import androidx.compose.material.icons.filled.Square
-import androidx.compose.material.icons.filled.Undo
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.Dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-
 import com.example.axelnonogram.NonogramData
 import com.example.axelnonogram.NonogramViewModel
-import kotlin.div
-import kotlin.text.toInt
 
 
 enum class PaintMode {
@@ -84,23 +53,6 @@ data class CellsHistory(
 fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
     val nonogramInfo = remember { mutableStateOf(loadNonogramInfo(nonogram.nonogram)) }
 
-    Log.e("NYBGG","${nonogramInfo.value.colHints.count()}")
-    for (colHint in nonogramInfo.value.colHints){
-        Log.e("NYBGG","---")
-        for (hint in colHint){
-            Log.e("NYBGG","${hint}")
-        }
-    }
-    Log.e("NYBGG","---")
-    Log.e("NYBGG","---")
-
-    Log.e("NYBGG","${nonogramInfo.value.rowHints.count()}")
-    for (colHint in nonogramInfo.value.rowHints){
-        Log.e("NYBGG","---")
-        for (hint in colHint){
-            Log.e("NYBGG","${hint}")
-        }
-    }
 
     val cellStates = remember {
         val rowCount = nonogramInfo.value.height-nonogramInfo.value.colHintsSize
@@ -141,7 +93,6 @@ fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
     val cellPastState = remember { mutableListOf<List<CellsHistory>>() }
     val cellFutureState = remember { mutableListOf<List<CellsHistory>>() }
 
-//    val pendingChanges = remember { mutableStateOf(mutableListOf<CellChange>()) }
 
     val isCompleted = remember { mutableStateOf(nonogram.isComplete) }
     val hideWinPopup = remember { mutableStateOf(false) }
@@ -186,7 +137,8 @@ fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
                                 offset += pan
                             }
                         }
-                    }
+                    },
+                contentAlignment = Alignment.Center
             ) {
 
                 Box(
@@ -287,7 +239,6 @@ fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
                             }
                         }
                 ) {
-                    // Game grid component
                     NonogramGrid(
                         height = nonogramInfo.value.height,
                         width = nonogramInfo.value.width,
@@ -317,14 +268,14 @@ fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
                         isComplete = isCompleted.value
                     )
 
-                    // Show completion overlay when puzzle is solved
 
                 }
                 if (isCompleted.value && !hideWinPopup.value) {
                     Box(
                         modifier = Modifier
-                            .matchParentSize()
-//                            .background(Color.Green.copy(alpha = completionAlpha.value))
+                            .width(300.dp)
+                            .height(300.dp)
+                            .background(Color.Black.copy(alpha = 0.5f))
                             .padding(16.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -340,7 +291,6 @@ fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
 
                             Button(
                                 onClick = {
-                                    // Clear the completion overlay but keep the solved puzzle visible
                                     hideWinPopup.value = true
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = Color.White)
@@ -350,6 +300,7 @@ fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
                         }
                     }
                 }
+
             }
 
 
@@ -368,7 +319,6 @@ fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
                             if (cellPastState.isNotEmpty() && !isCompleted.value) {
                                 val cells = cellPastState.removeAt(cellPastState.lastIndex)
                                 for (cell in cells) {
-                                    Log.e("AAAVVV","${cell.row},${cell.col},${cell.pastState}")
                                     cellStates[cell.row][cell.col].value = cell.pastState
                                 }
                                 cellFutureState.add(cells)
@@ -381,7 +331,6 @@ fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
                             if (cellFutureState.isNotEmpty() && !isCompleted.value) {
                                 val cells = cellFutureState.removeAt(cellFutureState.lastIndex)
                                 for (cell in cells) {
-                                    Log.e("AAAVVV","${cell.row},${cell.col},${cell.futureState}")
                                     cellStates[cell.row][cell.col].value = cell.futureState
                                 }
                                 cellPastState.add(cells)
@@ -420,26 +369,10 @@ fun getNewCellState(currentState: CellState, paintMode: PaintMode): CellState {
             if (currentState == CellState.MARKED) CellState.EMPTY else CellState.MARKED
         }
         PaintMode.CLEAR -> CellState.EMPTY
-        PaintMode.MOVE -> currentState // No change in move mode
-    }
-}
-fun resetGame(cellStates: Array<Array<MutableState<CellState>>>) {
-    for (row in cellStates.indices) {
-        for (col in cellStates[row].indices) {
-            cellStates[row][col].value = CellState.EMPTY
-        }
+        PaintMode.MOVE -> currentState
     }
 }
 
-
-
-fun copyCellStates(cellStates: Array<Array<MutableState<CellState>>>): Array<Array<MutableState<CellState>>> {
-    return Array(cellStates.size) { row ->
-        Array(cellStates[row].size) { col ->
-            mutableStateOf(cellStates[row][col].value)
-        }
-    }
-}
 
 fun checkSolution(solution: List<List<Boolean>>, cellStates: Array<Array<MutableState<CellState>>>): Boolean {
     for (row in solution.indices){

@@ -1,6 +1,5 @@
 package com.example.axelnonogram.game
 
-import android.util.Log
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.iterator
@@ -42,10 +41,6 @@ val conversionTable = mapOf(
 )
 
 fun decompress(compressedNonogram: String): List<String> {
-    Log.e("XYZ123", "1")
-
-
-        Log.e("XYZ123", "2")
 
         val list = compressedNonogram.split("x")
         if (list.count()<3){
@@ -66,10 +61,8 @@ fun decompress(compressedNonogram: String): List<String> {
             }
         }
         if (x.toInt() * y.toInt() < result.count()) {
-            Log.e("XYZ123", "DEN BLEV FASLK")
             return listOf("false")
         }
-        Log.e("XYZ123", "3")
 
         return listOf(x, y, result.joinToString(""))
 
@@ -140,13 +133,7 @@ fun loadNonogramInfo(compressedNonogram: String): NonogramInfo{
 
         colHints.add(colHint)
     }
-    Log.e("NYBG","${colHints.count()}")
-    for (colHint in colHints){
-        Log.e("NYBG","---")
-        for (hint in colHint){
-            Log.e("NYBG","${hint}")
-        }
-    }
+
 
     var rowHintsSize = 0
     for (rowHint in rowHints) {

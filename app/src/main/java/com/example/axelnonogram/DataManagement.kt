@@ -1,5 +1,5 @@
 package com.example.axelnonogram
-import android.R
+
 import androidx.room.*
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -8,7 +8,6 @@ import androidx.room.RoomDatabase
 import android.content.Context
 import androidx.room.Room
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -17,15 +16,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Dictionary
 
 
 @Entity(tableName = "nonogram")
 data class NonogramData(
-//    @PrimaryKey(autoGenerate = true)
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val type: String,
-    val nonogram: String,
+    var nonogram: String,
     var currentState: String? = null,
     var isComplete: Boolean = false
 )
@@ -60,12 +57,11 @@ abstract class AppDatabase : RoomDatabase() {
         private var INSTANCE: AppDatabase? = null
 
         fun getDatabase(context: Context): AppDatabase {
-            Log.d("AppDatabase", "Database Created")
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "app_database" // Database name
+                    "app_database"
                 )
                 .createFromAsset("default_database.db")
                 .build()
@@ -78,8 +74,8 @@ abstract class AppDatabase : RoomDatabase() {
 
 class NonogramRepository(private val nonogramDao: NonogramDao) {
 
-    suspend fun insert(nonogram: String, type: String) {
-        nonogramDao.insertNonogram(NonogramData(type=type,nonogram=nonogram))
+    suspend fun insert(nonogramData: NonogramData) {
+        nonogramDao.insertNonogram(nonogramData)
     }
 
     suspend fun update(nonogramData: NonogramData) {
@@ -88,10 +84,6 @@ class NonogramRepository(private val nonogramDao: NonogramDao) {
 
     suspend fun delete(id: Int) {
         nonogramDao.deleteNonogram(id)
-    }
-
-    fun getById(id: Int): NonogramData{
-        return nonogramDao.getById(id)
     }
 
     fun getAllByType(type: String): List<NonogramData> {
@@ -108,7 +100,6 @@ class NonogramViewModel(application: Application) : AndroidViewModel(application
 
     private val repository: NonogramRepository
 
-    // StateFlow for each nonogram type
     private val _defaultNonograms = MutableStateFlow<List<NonogramData>>(emptyList())
     val defaultNonograms: StateFlow<List<NonogramData>> = _defaultNonograms.asStateFlow()
 
@@ -118,14 +109,6 @@ class NonogramViewModel(application: Application) : AndroidViewModel(application
     private val _userNonograms = MutableStateFlow<List<NonogramData>>(emptyList())
     val userNonograms: StateFlow<List<NonogramData>> = _userNonograms.asStateFlow()
 
-
-
-    // Loading state
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-
-
     init {
         val database = AppDatabase.getDatabase(application)
         repository = NonogramRepository(database.nonogramDao())
@@ -133,25 +116,17 @@ class NonogramViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun loadAllNonograms() {
-        _isLoading.value = true
         viewModelScope.launch {
-
             loadNonogramsByType("d")
             loadNonogramsByType("i")
             loadNonogramsByType("u")
-
-
         }
-        _isLoading.value = false
-
     }
 
 
     private suspend fun loadNonogramsByType(type: String) {
         withContext(Dispatchers.IO) {
             val nonograms = repository.getAllByType(type)
-            Log.d("NonogramLoad", "Type $type has ${nonograms.size} entries")
-
             when (type) {
                 "d" -> _defaultNonograms.value = nonograms
                 "i" -> _importedNonograms.value = nonograms
@@ -160,42 +135,19 @@ class NonogramViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-//    fun getNonogram(id: Int): NonogramData{
-//        viewModelScope.launch {
-//
-//            val nonogram = repository.getById(id)
-//            return nonogram
-//        }
-//    }
-
     fun saveNonogram(nonogramData: NonogramData) {
         viewModelScope.launch {
-
                 repository.update(nonogramData)
-
                 loadNonogramsByType(nonogramData.type)
-
-
         }
     }
-    fun createNonogram(nonogram: String,type:String){
+
+    fun createNonogram(nonogramData: NonogramData){
         viewModelScope.launch {
-
-            repository.insert(nonogram, type)
-
-//            loadNonogramsByType(nonogramData.type)
-            loadNonogramsByType("i")
-//            loadNonogramsByType(nonogramData.type)
+            repository.insert(nonogramData)
+            loadNonogramsByType(nonogramData.type)
 
         }
-    }
-
-    fun updateNonogramProgress(nonogramData: NonogramData, currentState: String, isComplete: Boolean) {
-        val updatedNonogram = nonogramData.copy(
-            currentState = currentState,
-            isComplete = isComplete
-        )
-        saveNonogram(updatedNonogram)
     }
 
     fun deleteNonogram(id: Int) {
