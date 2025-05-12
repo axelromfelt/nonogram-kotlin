@@ -51,6 +51,8 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 import com.example.axelnonogram.NonogramData
 import com.example.axelnonogram.NonogramViewModel
@@ -82,6 +84,48 @@ data class CellsHistory(
 fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
     val nonogramInfo = remember { mutableStateOf(loadNonogramInfo(nonogram.nonogram)) }
 
+    Log.e("NYBGG","${nonogramInfo.value.colHints.count()}")
+    for (colHint in nonogramInfo.value.colHints){
+        Log.e("NYBGG","---")
+        for (hint in colHint){
+            Log.e("NYBGG","${hint}")
+        }
+    }
+    Log.e("NYBGG","---")
+    Log.e("NYBGG","---")
+
+    Log.e("NYBGG","${nonogramInfo.value.rowHints.count()}")
+    for (colHint in nonogramInfo.value.rowHints){
+        Log.e("NYBGG","---")
+        for (hint in colHint){
+            Log.e("NYBGG","${hint}")
+        }
+    }
+
+    val cellStates = remember {
+        val rowCount = nonogramInfo.value.height-nonogramInfo.value.colHintsSize
+        val colCount = nonogramInfo.value.width -nonogramInfo.value.rowHintsSize
+        val tempArray = Array(rowCount) { row ->
+            Array(colCount) { cell ->
+                mutableStateOf(CellState.EMPTY)
+            }
+        }
+        if (nonogram.currentState != "" && nonogram.currentState != null){
+            val state = nonogram.currentState
+            for (rowIndex in 0 until rowCount){
+                for (colIndex in 0 until colCount){
+                    tempArray[rowIndex][colIndex].value = when (state?.get(rowIndex*colCount+colIndex)){
+                        '1' -> CellState.FILLED
+                        '2' -> CellState.MARKED
+                        '0' -> CellState.EMPTY
+                        else -> CellState.EMPTY
+                    }
+                }
+            }
+        }
+        tempArray
+    }
+
     var paintMode by remember { mutableStateOf(PaintMode.FILL) }
 
     var zoomFactor by remember { mutableStateOf(1f) }
@@ -90,13 +134,7 @@ fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
 
 
 
-    val cellStates = remember {
-        Array(nonogramInfo.value.height-nonogramInfo.value.colHintsSize) { row ->
-            Array(nonogramInfo.value.width -nonogramInfo.value.rowHintsSize) { cell ->
-                mutableStateOf(CellState.EMPTY)
-            }
-        }
-    }
+
 
     val modifiedDuringDrag = remember { mutableListOf<CellsHistory>() }
 
@@ -105,7 +143,7 @@ fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
 
 //    val pendingChanges = remember { mutableStateOf(mutableListOf<CellChange>()) }
 
-    val isCompleted = remember { mutableStateOf(false) }
+    val isCompleted = remember { mutableStateOf(nonogram.isComplete) }
     val hideWinPopup = remember { mutableStateOf(false) }
 
 
@@ -242,6 +280,7 @@ fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
                                             cellFutureState.clear()
 
                                             isCompleted.value = checkSolution(nonogramInfo.value.solution, cellStates)
+                                            updateSaveData(viewModel, nonogram,cellStates,isCompleted.value)
                                         }
                                     }
                                 )
@@ -270,6 +309,8 @@ fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
                                 cellStates[row][col].value = newState
 
                                 isCompleted.value = checkSolution(nonogramInfo.value.solution, cellStates)
+                                updateSaveData(viewModel, nonogram,cellStates,isCompleted.value)
+
                             }
                         },
                         paintMode = paintMode,
@@ -324,7 +365,7 @@ fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
                     UndoRedoButtons(
                         onUndo = {
 
-                            if (cellPastState.isNotEmpty()) {
+                            if (cellPastState.isNotEmpty() && !isCompleted.value) {
                                 val cells = cellPastState.removeAt(cellPastState.lastIndex)
                                 for (cell in cells) {
                                     Log.e("AAAVVV","${cell.row},${cell.col},${cell.pastState}")
@@ -332,10 +373,12 @@ fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
                                 }
                                 cellFutureState.add(cells)
                             }
+                            updateSaveData(viewModel, nonogram,cellStates,isCompleted.value)
+
                         },
                         onRedo = {
 
-                            if (cellFutureState.isNotEmpty()) {
+                            if (cellFutureState.isNotEmpty() && !isCompleted.value) {
                                 val cells = cellFutureState.removeAt(cellFutureState.lastIndex)
                                 for (cell in cells) {
                                     Log.e("AAAVVV","${cell.row},${cell.col},${cell.futureState}")
@@ -343,6 +386,8 @@ fun NonogramGame(viewModel: NonogramViewModel, nonogram: NonogramData){
                                 }
                                 cellPastState.add(cells)
                             }
+                            updateSaveData(viewModel, nonogram,cellStates,isCompleted.value)
+
                         }
                     )
 
@@ -401,17 +446,35 @@ fun checkSolution(solution: List<List<Boolean>>, cellStates: Array<Array<Mutable
         for (col in solution[row].indices){
 
             val currentCell = cellStates[row][col].value.equals(CellState.FILLED)
-            Log.e("AABBVV","${solution[row][col]},${currentCell}")
             if (solution[row][col]!=currentCell){
-                Log.e("AABBVV","FALSE")
                 return false
             }
         }
     }
-    Log.e("AABBVV","TRUE")
+
     return true
 }
+fun updateSaveData(viewModel: NonogramViewModel,nonogramData: NonogramData,cellStates: Array<Array<MutableState<CellState>>>,isComplete:Boolean){
 
+    var newState = ""
+
+    for (row in cellStates){
+        for (cell in row){
+            newState += when (cell.value){
+                CellState.FILLED -> "1"
+                CellState.MARKED -> "2"
+                CellState.EMPTY -> "0"
+            }
+        }
+    }
+
+    nonogramData.currentState = newState
+    nonogramData.isComplete = isComplete
+
+    viewModel.saveNonogram(
+        nonogramData
+    )
+}
 fun isInRange(min: Int, value: Int, max: Int): Boolean {
     return value >= min && value < max
 }

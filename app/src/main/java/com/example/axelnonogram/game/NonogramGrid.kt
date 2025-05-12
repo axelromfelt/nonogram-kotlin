@@ -1,5 +1,6 @@
 package com.example.axelnonogram.game
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -39,7 +40,13 @@ fun NonogramGrid(
     paintMode: PaintMode,
     isComplete: Boolean
 ) {
-    // Use LazyColumn/LazyRow for better performance with large puzzles
+    Log.e("NYBG","${colHints.count()}")
+    for (colHint in colHints){
+        Log.e("NYBG","---")
+        for (hint in colHint){
+            Log.e("NYBG","${hint}")
+        }
+    }
     Column {
         for (row in 0 until height) {
             Row {
@@ -79,6 +86,7 @@ fun NonogramGrid(
                     }
 
                     else if (row < colHintsSize) {
+                        Log.e("NYBG","${colHints.count()}")
                         val currentColHints = colHints[col - rowHintsSize]
                         val currentHintIndex = row - (colHintsSize - currentColHints.size)
 

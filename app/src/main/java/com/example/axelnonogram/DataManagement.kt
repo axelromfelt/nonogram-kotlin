@@ -1,168 +1,3 @@
-//package com.example.axelnonogram
-//import androidx.room.*
-//import androidx.room.Entity
-//import androidx.room.PrimaryKey
-//import androidx.room.Database
-//import androidx.room.RoomDatabase
-//import android.content.Context
-//import androidx.room.Room
-//import android.app.Application
-//import androidx.lifecycle.AndroidViewModel
-//import androidx.lifecycle.ViewModel
-//import androidx.lifecycle.viewModelScope
-//import kotlinx.coroutines.Dispatchers
-//import kotlinx.coroutines.flow.MutableStateFlow
-//import kotlinx.coroutines.flow.StateFlow
-//import kotlinx.coroutines.flow.asStateFlow
-//import kotlinx.coroutines.launch
-//import kotlinx.coroutines.withContext
-//
-//
-//@Entity(tableName = "nonogram")
-//data class NonogramData(
-//    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-//    val type: String,
-//    val nonogram: String,
-//    val currentState: String? = null,
-//    var isComplete: Boolean = false
-//)
-//
-//
-//@Dao
-//interface NonogramDao {
-//    @Upsert
-//    suspend fun upsertNonogram(nonogram: NonogramData)
-//
-//    @Delete
-//    suspend fun deleteNonogram(nonogram: NonogramData)
-//
-//    @Query("SELECT * FROM nonogram WHERE type = :type ORDER BY id DESC")
-//    fun getAllByType(type: String): List<NonogramData>
-//}
-//
-//@Database(entities = [NonogramData::class], version = 1)
-//abstract class AppDatabase : RoomDatabase() {
-//    abstract fun nonogramDao(): NonogramDao
-//
-//}
-//
-//
-//sealed interface ContactEvent {
-//    data class SaveContact(val nonogram: NonogramData): ContactEvent
-//
-//    data class SortContacts(val sortType: NonogramData): ContactEvent
-//    data class DeleteContact(val nonogram: NonogramData): ContactEvent
-//}
-//
-//
-//
-//package com.example.axelnonogram
-//
-//import android.app.Application
-//import androidx.lifecycle.AndroidViewModel
-//import androidx.lifecycle.viewModelScope
-//import kotlinx.coroutines.Dispatchers
-//import kotlinx.coroutines.flow.MutableStateFlow
-//import kotlinx.coroutines.flow.StateFlow
-//import kotlinx.coroutines.flow.asStateFlow
-//import kotlinx.coroutines.launch
-//import kotlinx.coroutines.withContext
-//
-//class NonogramViewModel(application: Application) : AndroidViewModel(application) {
-//
-//    private val repository: NonogramRepository
-//
-//    // StateFlow for each nonogram type
-//    private val _standardNonograms = MutableStateFlow<List<NonogramData>>(emptyList())
-//    val standardNonograms: StateFlow<List<NonogramData>> = _standardNonograms.asStateFlow()
-//
-//    private val _colorNonograms = MutableStateFlow<List<NonogramData>>(emptyList())
-//    val colorNonograms: StateFlow<List<NonogramData>> = _colorNonograms.asStateFlow()
-//
-//    private val _multiNonograms = MutableStateFlow<List<NonogramData>>(emptyList())
-//    val multiNonograms: StateFlow<List<NonogramData>> = _multiNonograms.asStateFlow()
-//
-//    // Loading state
-//    private val _isLoading = MutableStateFlow(false)
-//    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-//
-//    // Error handling
-//    private val _error = MutableStateFlow<String?>(null)
-//    val error: StateFlow<String?> = _error.asStateFlow()
-//
-//    init {
-//        val database = AppDatabase.getDatabase(application)
-//        repository = NonogramRepository(database.nonogramDao())
-//
-//        // Load data for all types when ViewModel is created
-//        loadAllNonograms()
-//    }
-//
-//    fun loadAllNonograms() {
-//        _isLoading.value = true
-//        viewModelScope.launch {
-//            try {
-//                loadNonogramsByType("standard")
-//                loadNonogramsByType("color")
-//                loadNonogramsByType("multi")
-//                _error.value = null
-//            } catch (e: Exception) {
-//                _error.value = "Failed to load nonograms: ${e.localizedMessage}"
-//            } finally {
-//                _isLoading.value = false
-//            }
-//        }
-//    }
-//
-//    private suspend fun loadNonogramsByType(type: String) {
-//        withContext(Dispatchers.IO) {
-//            val nonograms = repository.getAllByType(type)
-//            when (type) {
-//                "standard" -> _standardNonograms.value = nonograms
-//                "color" -> _colorNonograms.value = nonograms
-//                "multi" -> _multiNonograms.value = nonograms
-//            }
-//        }
-//    }
-//
-//    fun saveNonogram(nonogramData: NonogramData) {
-//        viewModelScope.launch {
-//            try {
-//                repository.upsert(nonogramData)
-//                // Refresh the corresponding list
-//                loadNonogramsByType(nonogramData.type)
-//                _error.value = null
-//            } catch (e: Exception) {
-//                _error.value = "Failed to save nonogram: ${e.localizedMessage}"
-//            }
-//        }
-//    }
-//
-//    fun updateNonogramProgress(nonogramData: NonogramData, currentState: String, isComplete: Boolean) {
-//        val updatedNonogram = nonogramData.copy(
-//            currentState = currentState,
-//            isComplete = isComplete
-//        )
-//        saveNonogram(updatedNonogram)
-//    }
-//
-//    fun deleteNonogram(nonogramData: NonogramData) {
-//        viewModelScope.launch {
-//            try {
-//                repository.delete(nonogramData)
-//                // Refresh the corresponding list
-//                loadNonogramsByType(nonogramData.type)
-//                _error.value = null
-//            } catch (e: Exception) {
-//                _error.value = "Failed to delete nonogram: ${e.localizedMessage}"
-//            }
-//        }
-//    }
-//
-//    fun clearError() {
-//        _error.value = null
-//    }
-//}
 package com.example.axelnonogram
 import android.R
 import androidx.room.*
@@ -187,10 +22,11 @@ import java.util.Dictionary
 
 @Entity(tableName = "nonogram")
 data class NonogramData(
-    @PrimaryKey(autoGenerate = true) val id: Int = 3000,
+//    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val type: String,
     val nonogram: String,
-    val currentState: String? = null,
+    var currentState: String? = null,
     var isComplete: Boolean = false
 )
 
@@ -198,10 +34,14 @@ data class NonogramData(
 @Dao
 interface NonogramDao {
     @Upsert
-    suspend fun upsertNonogram(nonogram: NonogramData)
+    suspend fun insertNonogram(nonogram: NonogramData)
 
-    @Delete
-    suspend fun deleteNonogram(nonogram: NonogramData)
+    @Update
+    suspend fun updateNonogram(nonogram: NonogramData)
+
+
+    @Query("DELETE FROM nonogram WHERE id = :id")
+    suspend fun deleteNonogram(id: Int)
 
     @Query("SELECT * FROM nonogram WHERE id = :id")
     fun getById(id: Int): NonogramData
@@ -238,12 +78,16 @@ abstract class AppDatabase : RoomDatabase() {
 
 class NonogramRepository(private val nonogramDao: NonogramDao) {
 
-    suspend fun upsert(nonogramData: NonogramData) {
-        nonogramDao.upsertNonogram(nonogramData)
+    suspend fun insert(nonogram: String, type: String) {
+        nonogramDao.insertNonogram(NonogramData(type=type,nonogram=nonogram))
     }
 
-    suspend fun delete(nonogramData: NonogramData) {
-        nonogramDao.deleteNonogram(nonogramData)
+    suspend fun update(nonogramData: NonogramData) {
+        nonogramDao.updateNonogram(nonogramData)
+    }
+
+    suspend fun delete(id: Int) {
+        nonogramDao.deleteNonogram(id)
     }
 
     fun getById(id: Int): NonogramData{
@@ -327,10 +171,21 @@ class NonogramViewModel(application: Application) : AndroidViewModel(application
     fun saveNonogram(nonogramData: NonogramData) {
         viewModelScope.launch {
 
-                repository.upsert(nonogramData)
+                repository.update(nonogramData)
 
                 loadNonogramsByType(nonogramData.type)
 
+
+        }
+    }
+    fun createNonogram(nonogram: String,type:String){
+        viewModelScope.launch {
+
+            repository.insert(nonogram, type)
+
+//            loadNonogramsByType(nonogramData.type)
+            loadNonogramsByType("i")
+//            loadNonogramsByType(nonogramData.type)
 
         }
     }
@@ -343,10 +198,12 @@ class NonogramViewModel(application: Application) : AndroidViewModel(application
         saveNonogram(updatedNonogram)
     }
 
-    fun deleteNonogram(nonogramData: NonogramData) {
+    fun deleteNonogram(id: Int) {
         viewModelScope.launch {
-                repository.delete(nonogramData)
-                loadNonogramsByType(nonogramData.type)
+                repository.delete(id)
+                loadNonogramsByType("i")
+                loadNonogramsByType("u")
+
         }
     }
 }
