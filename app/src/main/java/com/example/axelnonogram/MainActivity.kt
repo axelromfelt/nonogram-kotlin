@@ -140,6 +140,7 @@ package com.example.axelnonogram
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -151,66 +152,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.room.Room
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
-//        val samplePuzzle =listOf(
-//                listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true, false),
-//                listOf(true, true, false, true, true,true, true, false, true, true,true, true, false, true, true,true, true, false, true, true),
-//                listOf(true, true, false, false, true,true, true, false, false, true,true, true, false, false, true,true, true, false, false, true),
-//                listOf(true, false, false, false, true,true, false, false, false, true,true, false, false, false, true,true, false, false, false, true),
-//                listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true, false),
-//                listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true, false),
-//                listOf(true, true, false, true, true,true, true, false, true, true,true, true, false, true, true,true, true, false, true, true),
-//                listOf(true, true, false, false, true,true, true, false, false, true,true, true, false, false, true,true, true, false, false, true),
-//                listOf(true, false, false, false, true,true, false, false, false, true,true, false, false, false, true,true, false, false, false, true),
-//                listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true, false),
-//                listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true, false),
-//                listOf(true, true, false, true, true,true, true, false, true, true,true, true, false, true, true,true, true, false, true, true),
-//                listOf(true, true, false, false, true,true, true, false, false, true,true, true, false, false, true,true, true, false, false, true),
-//                listOf(true, false, false, false, true,true, false, false, false, true,true, false, false, false, true,true, false, false, false, true),
-//                listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true, false),
-//                listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true, false),
-//                listOf(true, true, false, true, true,true, true, false, true, true,true, true, false, true, true,true, true, false, true, true),
-//                listOf(true, true, false, false, true,true, true, false, false, true,true, true, false, false, true,true, true, false, false, true),
-//                listOf(true, false, false, false, true,true, false, false, false, true,true, false, false, false, true,true, false, false, false, true),
-//                listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true, false),
-//            )
-        val samplePuzzle =listOf(
-            listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true),
-            listOf(true, true, false, true, true,true, true, false, true, true,true, true, false, true, true,true, true, false, true),
-            listOf(true, true, false, false, true,true, true, false, false, true,true, true, false, false, true,true, true, false, false),
-            listOf(true, false, false, false, true,true, false, false, false, true,true, false, false, false, true,true, false, false, false),
-            listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true),
-            listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true),
-            listOf(true, true, false, true, true,true, true, false, true, true,true, true, false, true, true,true, true, false, true),
-            listOf(true, true, false, false, true,true, true, false, false, true,true, true, false, false, true,true, true, false, false),
-            listOf(true, false, false, false, true,true, false, false, false, true,true, false, false, false, true,true, false, false, false),
-            listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true),
-            listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true),
-            listOf(true, true, false, true, true,true, true, false, true, true,true, true, false, true, true,true, true, false, true),
-            listOf(true, true, false, false, true,true, true, false, false, true,true, true, false, false, true,true, true, false, false),
-            listOf(true, false, false, false, true,true, false, false, false, true,true, false, false, false, true,true, false, false, false),
-            listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true),
-            listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true),
-            listOf(true, true, false, true, true,true, true, false, true, true,true, true, false, true, true,true, true, false, true),
-            listOf(true, true, false, false, true,true, true, false, false, true,true, true, false, false, true,true, true, false, false),
-            listOf(true, false, false, false, true,true, false, false, false, true,true, false, false, false, true,true, false, false, false),
-            listOf(false, true, true, true, false,false, true, true, true, false,false, true, true, true, false,false, true, true, true),
-        )
+
 //        val puzzle = "20x20xEeeikidjOEcHMdneEeigGmPbgfCEpOKlNGijfNMJGaBggaKlGbOIhGklEKKdNnJkjMkdnhdgANChBogb"
 //        val puzzle = "3x4xlNm"
         val puzzle = "3x6xlNGo"
+
+        val viewModel: NonogramViewModel by viewModels()
+
         setContent {
             MaterialTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-//                    NonogramGame(samplePuzzle)
-                    AppNavigation()
-//                    TransformableSample()
+//                    NonogramMain(puzzle)
+
+                    App(viewModel)
                 }
             }
         }

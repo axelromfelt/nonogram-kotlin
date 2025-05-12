@@ -1,6 +1,5 @@
 //package com.example.axelnonogram
 //
-//package com.example.axelnonogram
 //
 //import android.content.Context
 //import androidx.room.*

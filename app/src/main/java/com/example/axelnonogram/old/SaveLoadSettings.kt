@@ -1,6 +1,5 @@
 //package com.example.axelnonogram
 //
-//package com.example.axelnonogram
 //
 //import android.content.Context
 //import android.content.SharedPreferences
@@ -17,9 +16,6 @@
 // */
 //data class GameSettings(
 //    val soundEnabled: Boolean = true,
-//    val vibrationEnabled: Boolean = true,
-//    val darkMode: Boolean = false,
-//    val difficulty: Difficulty = Difficulty.MEDIUM,
 //    val gridSize: Int = 10
 //)
 //
